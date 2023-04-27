@@ -27,3 +27,34 @@ cmake --build build
 ```
 
 将Build目录下的Release目录下的main.exe文件拷贝到fast_mass_spring目录下，然后运行即可。
+
+
+----
+## Debug方法（Windows 10 + vscode）
+将build/Debug目录下的`main.exe`和`main.pdb`文件拷贝到fast_mass_spring目录下。
+创建.vscode/launch.json
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(msvc) Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            // Resolved by CMake Tools:
+            "program": "${workspaceFolder}/fast_mass_spring/main.exe",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/fast_mass_spring",
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
+                }
+            ],
+            "console": "externalTerminal"
+        }
+    ]
+}
+```
+点击VS code`左侧边栏(运行和调试)`（注意不是下侧）的调试按钮，然后点击(msvc) Launch即可。

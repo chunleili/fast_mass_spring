@@ -40,3 +40,9 @@ target_link_libraries(main PUBLIC ${EXTERN}/glew/lib/glew32.lib)
 target_link_libraries(main PUBLIC ${EXTERN}/AntTweakBar/lib/AntTweakBar64.lib)
 target_link_libraries(main PUBLIC ${EXTERN}/freeglut/lib/x64/freeglut.lib)
 target_link_libraries(main PUBLIC ${EXTERN}/glew/lib/glew32mx.lib)
+
+add_custom_command(
+        TARGET main  POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_BINARY_DIR}/$<CONFIGURATION> ${CMAKE_CURRENT_LIST_DIR}/fast_mass_spring
+        )
