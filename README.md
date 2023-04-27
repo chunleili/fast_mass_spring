@@ -14,7 +14,7 @@ Copy the main.exe file in the Release directory under the Build directory to the
 
 
 
-将tiantian liu 2013的fast mass spring(http://tiantianliu.cn/)维护了一下，新增了cmake，并更新了Eigen。测试在win10 vs2022 + cmake 下通过编译。原本的源代码为：http://tiantianliu.cn/papers/liu13fast/liu13fast.zip
+将tiantian liu 2013的fast mass spring( http://tiantianliu.cn/ ) 维护了一下，新增了cmake，并更新了Eigen。测试在win10 vs2022 + cmake 下通过编译。原本的源代码为：http://tiantianliu.cn/papers/liu13fast/liu13fast.zip
 
 编译方法：
 下载VS2022并且安装好C++ desktop开发环境
