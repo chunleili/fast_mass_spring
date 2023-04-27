@@ -10,7 +10,7 @@ cmake -B build
 cmake --build build
 ```
 
-Copy the main.exe file in the Release directory under the Build directory to the fast_mass_spring directory, and then run it.
+Copy the main.exe file in the Release directory under the Build directory to the fast_mass_spring directory, and then run it. (Update: This has been automated in the CMakeLists.txt file now, so you don't need to copy it manually.)
 
 
 
@@ -26,4 +26,7 @@ cmake -B build
 cmake --build build
 ```
 
-将Build目录下的Release目录下的main.exe文件拷贝到fast_mass_spring目录下，然后运行即可。
+将Build目录下的Release目录下的main.exe文件拷贝到fast_mass_spring目录下，然后运行即可。(更新：这一步已经在CMakeLists.txt文件中自动化了，所以不需要手动拷贝了。)
+
+
+**Debug方法** 请查看debug分支的readme.md
