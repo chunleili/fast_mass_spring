@@ -1,0 +1,7 @@
+build
+*.log
+*.vcxproj
+x64
+*.tlog
+.vs
+.vscode
