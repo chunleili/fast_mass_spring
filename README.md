@@ -3,6 +3,7 @@ This code maintains the fast mass spring (http://tiantianliu.cn/) of tiantian li
 Compile method:
 Download VS2022 and install the C++ desktop development environment
 Download cmake and install it
+Install cmake tool plug-in for vscode
 
 Compile with cmake:
 ```
@@ -10,15 +11,21 @@ cmake -B build
 cmake --build build
 ```
 
-Copy the main.exe file in the Release directory under the Build directory to the fast_mass_spring directory, and then run it.
+Run:
+```
+cd fast_mass_spring
+./main.exe
+```
 
 
 
+# Chinese
 将tiantian liu 2013的fast mass spring( http://tiantianliu.cn/ ) 维护了一下，新增了cmake，并更新了Eigen。测试在win10 vs2022 + cmake 下通过编译。原本的源代码为：http://tiantianliu.cn/papers/liu13fast/liu13fast.zip
 
 编译方法：
 下载VS2022并且安装好C++ desktop开发环境
 下载cmake并且安装好
+安装vscode的cmake工具插件
 
 使用cmake编译：
 ```
@@ -26,13 +33,16 @@ cmake -B build
 cmake --build build
 ```
 
-将Build目录下的Release目录下的main.exe文件拷贝到fast_mass_spring目录下，然后运行即可。
-
+运行
+```
+cd fast_mass_spring
+./main.exe
+```
 
 ----
-## Debug方法（Windows 10 + vscode）
-将build/Debug目录下的`main.exe`和`main.pdb`文件拷贝到fast_mass_spring目录下。
-创建.vscode/launch.json
+## How to Debug(Windows 10 + vscode)
+
+.vscode/launch.json
 ```json
 {
     "version": "0.2.0",
@@ -52,9 +62,8 @@ cmake --build build
                     "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
                 }
             ],
-            "console": "externalTerminal"
         }
     ]
 }
 ```
-点击VS code`左侧边栏(运行和调试)`（注意不是下侧）的调试按钮，然后点击(msvc) Launch即可。
+F5 to debug.
