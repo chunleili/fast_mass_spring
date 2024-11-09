@@ -149,6 +149,16 @@ SpringConstraint::SpringConstraint(ScalarType *stiffness, unsigned int p1, unsig
 {
 }
 
+
+SpringConstraint::SpringConstraint(ScalarType *stiffness, unsigned int p1, unsigned int p2, ScalarType length, std::string type) : 
+    Constraint(stiffness),
+    m_p1(p1),
+    m_p2(p2),
+    m_rest_length(length),
+    m_type(type)
+{
+}
+
 SpringConstraint::SpringConstraint(const SpringConstraint& other) : 
     Constraint(other),
     m_p1(other.m_p1),

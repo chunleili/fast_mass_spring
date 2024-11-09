@@ -32,6 +32,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 
 #include "global_headers.h"
 #include "math_headers.h"
@@ -57,8 +58,8 @@ public:
 
     inline const ScalarType& Stiffness() {return (*m_stiffness);}
 
-protected:
     ScalarType *m_stiffness;
+protected:
 
 // for visualization and selection
 public:
@@ -84,9 +85,9 @@ public:
     virtual void EvaluateDVector(unsigned int index, const VectorX& x, VectorX& d);
     virtual void EvaluateJMatrix(unsigned int index, std::vector<SparseMatrixTriplet>& J_triplets);
 
-protected:
     unsigned int m_p0;
     EigenVector3 m_fixd_point;
+protected:
 
 // for visualization and selection
 public:
@@ -107,6 +108,7 @@ class SpringConstraint : public Constraint
 public:
     SpringConstraint(ScalarType *stiffness);
     SpringConstraint(ScalarType *stiffness, unsigned int p1, unsigned int p2, ScalarType length);
+    SpringConstraint(ScalarType *stiffness, unsigned int p1, unsigned int p2, ScalarType length, std::string type);
     SpringConstraint(const SpringConstraint& other);
     virtual ~SpringConstraint();
 
@@ -120,10 +122,11 @@ public:
     virtual void EvaluateDVector(unsigned int index, const VectorX& x, VectorX& d);
     virtual void EvaluateJMatrix(unsigned int index, std::vector<SparseMatrixTriplet>& J_triplets);
 
+    ScalarType m_rest_length;
+    std::string m_type="stretch";
 protected:
     unsigned int m_p1, m_p2;
     // rest length
-    ScalarType m_rest_length;
 };
 
 #endif

@@ -53,8 +53,54 @@ void Simulation::Reset()
     m_selected_attachment_constraint = NULL;
 }
 
+
+void Simulation::write_positions(Mesh *m_mesh)
+{
+    std::ofstream file;
+    file.open("positions.txt");
+    for (unsigned int i = 0; i < m_mesh->m_vertices_number; ++i)
+    {
+        file << m_mesh->m_current_positions.block_vector(i).transpose() << std::endl;
+    }
+    file.close();
+}
+
+
+void Simulation::write_edge_list(Mesh *m_mesh)
+{
+    std::ofstream file;
+    file.open("edge_list.txt");
+    for (std::vector<Edge>::iterator e = m_mesh->m_edge_list.begin(); e != m_mesh->m_edge_list.end(); ++e)
+    {
+        file << e->m_v1 << " " << e->m_v2 << std::endl;
+    }
+    file.close();
+}
+
+void Simulation::write_tri_list(Mesh* mesh)
+{
+    std::ofstream file;
+    file.open("tri_list.txt");
+    for (std::vector<unsigned int>::iterator t = mesh->m_triangle_list.begin(); t != mesh->m_triangle_list.end(); ++t)
+    {
+        file << *t << std::endl;
+    }
+    file.close();
+}
+
 void Simulation::Update()
 {
+    static bool firstTime=true;
+
+    if (firstTime)
+    {
+        write_positions(m_mesh);
+        write_edge_list(m_mesh);
+        write_tri_list(m_mesh);
+        firstTime = false;
+    }
+
+
     // update inertia term
     calculateInertiaY();
 
@@ -250,6 +296,8 @@ void Simulation::setupConstraints()
                 p2 = m_mesh->m_current_positions.block_vector(e->m_v2);
                 SpringConstraint* c = new SpringConstraint(&m_stiffness_stretch, e->m_v1, e->m_v2, (p1-p2).norm());
                 m_constraints.push_back(c);
+                // f"AttachmentConstraint: {self.p0} fixed_point: {self.fixed_point} stiffness: {self.stiffness} type: {self.type}"
+                std::cout << "SpringConstraint: " << e->m_v1 << " - " << e->m_v2 << " rest_len: " << c->m_rest_length << " stiffness: " << c->m_stiffness << " type: " << "stretch" << std::endl;
             }
 
             // generate bending constraints. naive
@@ -264,19 +312,24 @@ void Simulation::setupConstraints()
                     {
                         unsigned int index_row_1 = m_mesh->m_dim[1] * (i + 2) + k;
                         p2 = m_mesh->m_current_positions.block_vector(index_row_1);
-                        SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_row_1, (p1-p2).norm());
+                        SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_row_1, (p1-p2).norm(), "bending");
                         m_constraints.push_back(c);
+                        // return f"SpringConstraint: {self.p1} - {self.p2} rest_len: {self.rest_len} stiffness: {self.stiffness} type: {self.type}"
+                        std::cout << "SpringConstraint: " << index_self << " - " << index_row_1 << " rest_len: " << c->m_rest_length << " stiffness: " << *(c->m_stiffness) << " type: " <<"bending" << std::endl;
                     }
                     if (k+2 < m_mesh->m_dim[1])
                     {
                         unsigned int index_column_1 = m_mesh->m_dim[1] * i + k + 2;
                         p2 = m_mesh->m_current_positions.block_vector(index_column_1);
-                        SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_column_1, (p1-p2).norm());
+                        SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_column_1, (p1-p2).norm(), "bending");
                         m_constraints.push_back(c);
+                        // return f"SpringConstraint: {self.p1} - {self.p2} rest_len: {self.rest_len} stiffness: {self.stiffness} type: {self.type}"
+                        std::cout << "SpringConstraint: " << index_self << " - " << index_column_1 << " rest_len: " << c->m_rest_length << " stiffness: " << *(c->m_stiffness) << " type: " << "bending" << std::endl;
                     }
                 }
             }
         }
+        exit(0);
         break;
     case MESH_TYPE_TET:
         {
@@ -630,6 +683,17 @@ void Simulation::evaluateGradient(const VectorX& x, VectorX& gradient)
     gradient = m_mesh->m_mass_matrix * (x - m_inertia_y) + h_square*gradient;
 }
 
+#include "eigen/unsupported/Eigen/SparseExtra"
+
+using SpMat = Eigen::SparseMatrix<float>;
+
+template<typename T = SpMat>
+ void saveMatrix(T& d, std::string filename = "mat")
+ {
+     Eigen::saveMarket(d, filename);
+ }
+
+
 void Simulation::evaluateHessian(const VectorX& x, SparseMatrix& hessian_matrix)
 {
     hessian_matrix.resize(m_mesh->m_system_dimension, m_mesh->m_system_dimension);
@@ -642,6 +706,8 @@ void Simulation::evaluateHessian(const VectorX& x, SparseMatrix& hessian_matrix)
     }
 
     hessian_matrix.setFromTriplets(h_triplets.begin(), h_triplets.end());
+    
+    saveMatrix(hessian_matrix, "hessian.mtx");
     ScalarType h_square = m_h*m_h;
     hessian_matrix = m_mesh->m_mass_matrix + h_square*hessian_matrix;
 }

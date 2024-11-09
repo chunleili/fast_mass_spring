@@ -8,7 +8,8 @@
             // Resolved by CMake Tools:
             "program": "${workspaceFolder}/fast_mass_spring/main.exe",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
+            "justMyCode": true,
             "cwd": "${workspaceFolder}/fast_mass_spring",
             "environment": [
                 {

@@ -69,6 +69,10 @@ class Simulation
 public:
     Simulation();
     virtual ~Simulation();
+    
+    void write_positions(Mesh *m_mesh);
+    void write_edge_list(Mesh *m_mesh);
+    void write_tri_list(Mesh *m_mesh);
 
     void Reset();
     void Update();

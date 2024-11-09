@@ -415,7 +415,7 @@ void AntTweakBarWrapper::DefaultSettings()
     g_mesh->m_corners[1] = EigenVector3(5, -1.85, -3.26);
 
     //simulation settings
-    g_simulation->m_integration_method = INTEGRATION_LOCAL_GLOBAL;
+    g_simulation->m_integration_method = INTEGRATION_NEWTON_DESCENT;
     g_simulation->m_h = 0.0333;
 
     g_simulation->m_stiffness_attachment = 120;

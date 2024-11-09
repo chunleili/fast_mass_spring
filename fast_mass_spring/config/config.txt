@@ -10,7 +10,7 @@ TetScaling          1
 ClothDimension      21 21
 ClothCorners        -5 8 -5 5 -1.85 -3.26
 
-SimMethod           0
+SimMethod           5
 Timestep            0.0333
 AttachmentStiffness 120
 StretchStiffness    80
