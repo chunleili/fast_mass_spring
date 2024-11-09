@@ -6,3 +6,5 @@ build
 .vscode
 main.exe
 main.pdb
+*.mtx
+fast_mass_spring/freeglut.dll

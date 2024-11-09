@@ -92,6 +92,9 @@ public:
     }
     inline void SetMesh(Mesh* mesh) {m_mesh = mesh;}
     inline void SetScene(Scene* scene) {m_scene = scene;}
+
+    int m_iteration_num;
+    int m_frame=0;
     
 protected:
 

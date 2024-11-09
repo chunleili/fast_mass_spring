@@ -32,6 +32,20 @@
 #include "simulation.h"
 #include "timer_wrapper.h"
 
+#include <iomanip> // for std::setprecision
+#include "unsupported/Eigen/SparseExtra"
+using SpMat = Eigen::SparseMatrix<float>;
+using std::string;
+using std::cout;
+using std::endl;
+
+template<typename T = SpMat>
+void saveMatrix(T& d, std::string filename = "mat")
+{
+    Eigen::saveMarket(d, filename);
+}
+
+
 Simulation::Simulation()
 
 {
@@ -55,6 +69,7 @@ void Simulation::Reset()
 
 void Simulation::Update()
 {
+    cout<<"frame: "<<m_frame<<endl;
     // update inertia term
     calculateInertiaY();
 
@@ -87,6 +102,7 @@ void Simulation::Update()
 
     // update velocity and damp
     dampVelocity();
+    m_frame+=1;
 }
 
 void Simulation::DrawConstraints(const VBO& vbos)
@@ -461,6 +477,7 @@ void Simulation::integrateOptimizationMethod()
 
     for (unsigned int iteration_num = 0; !converge && iteration_num < m_iterations_per_frame; ++iteration_num)
     {
+        m_iteration_num = iteration_num;
         switch (m_integration_method)
         {
         case INTEGRATION_GRADIENT_DESCENT:
@@ -507,6 +524,7 @@ bool Simulation::integrateGradientDescentOneIteration(VectorX& x)
         return false;
 }
 
+
 bool Simulation::integrateNewtonDescentOneIteration(VectorX& x)
 {
     // evaluate gradient direction
@@ -526,6 +544,13 @@ bool Simulation::integrateNewtonDescentOneIteration(VectorX& x)
 
     // line search
      ScalarType step_size = lineSearch(x, gradient, descent_dir);
+
+    std::cout<<"    iter:"<<m_iteration_num<<std::endl;
+    // // export hessian to file
+    saveMatrix<SparseMatrix>(hessian, "result/hessian_"+std::to_string(m_iteration_num)+".mtx");
+    // export gradient to file
+    saveMatrix<VectorX>(gradient, "result/gradient_"+std::to_string(m_iteration_num)+".mtx");
+
 
     // update x
     x = x + descent_dir * step_size;
@@ -609,6 +634,9 @@ ScalarType Simulation::evaluateObjectiveFunction(const VectorX& x)
     ScalarType inertia_term = 0.5 * (x-m_inertia_y).transpose() * m_mesh->m_mass_matrix * (x-m_inertia_y);
     ScalarType h_square = m_h*m_h;
 
+    ScalarType obj = inertia_term + potential_term * h_square;
+    // print in high precision
+    std::cout<<"    obj: "<<std::setprecision(8)<<obj<<std::endl;
     return inertia_term + potential_term * h_square;    
 }
 
