@@ -31,6 +31,100 @@
 
 #include "simulation.h"
 #include "timer_wrapper.h"
+#include "eigen/unsupported/Eigen/SparseExtra"
+#include <iomanip> 
+using std::cout;
+using std::endl;
+using std::string;
+using std::setprecision;
+
+
+    
+
+using SpMat = Eigen::SparseMatrix<float>;
+
+template<typename T = SpMat>
+ void saveMatrix(T& d, std::string filename = "mat")
+ {
+     Eigen::saveMarket(d, filename);
+ }
+
+template<typename T = Eigen::VectorXf>
+void saveVector(T& d, string filename = "vec")
+{
+    Eigen::saveMarket(d, filename);
+}
+
+template<typename T=Field1i>
+void savetxt(string filename, T &field)
+{
+    ofstream myfile;
+    myfile.open(filename);
+    for(auto &i:field)
+    {
+        myfile << i << '\n';
+    }
+    myfile.close();
+}
+
+void Simulation::write_positions(Mesh *m_mesh)
+{
+    std::ofstream file;
+    file.open("pos.txt");
+    for (unsigned int i = 0; i < m_mesh->m_vertices_number; ++i)
+    {
+        file <<setprecision(15)<< m_mesh->m_current_positions.block_vector(i).transpose() << std::endl;
+    }
+    file.close();
+}
+
+
+void Simulation::write_edge_list(Mesh *m_mesh)
+{
+    std::ofstream file;
+    file.open("edge.txt");
+    for (std::vector<Edge>::iterator e = m_mesh->m_edge_list.begin(); e != m_mesh->m_edge_list.end(); ++e)
+    {
+        file << e->m_v1 << " " << e->m_v2 << std::endl;
+    }
+    file.close();
+}
+
+void Simulation::write_tri_list(Mesh* mesh)
+{
+    std::ofstream file;
+    file.open("tri.txt");
+    for (std::vector<unsigned int>::iterator t = mesh->m_triangle_list.begin(); t != mesh->m_triangle_list.end(); ++t)
+    {
+        file << *t << std::endl;
+    }
+    file.close();
+}
+
+void debug(const VectorX& x, std::string name="vec")
+{
+
+    std::cout << name << ": " << x.size() ;
+    std::cout <<std::setprecision(10)<< " norm: " << x.norm();
+    std::cout << " max: " << x.maxCoeff();
+    std::cout << " min: " << x.minCoeff()<< std::endl;
+
+    // saveVector(x, name+".mtx");
+}
+
+
+void debugmat(const SparseMatrix& m, std::string name="mat")
+{
+    std::cout << name << ": " << m.rows() << "x" << m.cols();
+    std::cout << " norm: " << m.norm() << std::endl;
+    // std::cout << " max: " << m.maxCoeff();
+    // std::cout << " min: " << m.minCoeff()<< std::endl;
+}
+
+
+
+
+
 
 Simulation::Simulation()
 
@@ -54,51 +148,8 @@ void Simulation::Reset()
 }
 
 
-void Simulation::write_positions(Mesh *m_mesh)
-{
-    std::ofstream file;
-    file.open("positions.txt");
-    for (unsigned int i = 0; i < m_mesh->m_vertices_number; ++i)
-    {
-        file << m_mesh->m_current_positions.block_vector(i).transpose() << std::endl;
-    }
-    file.close();
-}
-
-
-void Simulation::write_edge_list(Mesh *m_mesh)
-{
-    std::ofstream file;
-    file.open("edge_list.txt");
-    for (std::vector<Edge>::iterator e = m_mesh->m_edge_list.begin(); e != m_mesh->m_edge_list.end(); ++e)
-    {
-        file << e->m_v1 << " " << e->m_v2 << std::endl;
-    }
-    file.close();
-}
-
-void Simulation::write_tri_list(Mesh* mesh)
-{
-    std::ofstream file;
-    file.open("tri_list.txt");
-    for (std::vector<unsigned int>::iterator t = mesh->m_triangle_list.begin(); t != mesh->m_triangle_list.end(); ++t)
-    {
-        file << *t << std::endl;
-    }
-    file.close();
-}
-
 void Simulation::Update()
 {
-    static bool firstTime=true;
-
-    if (firstTime)
-    {
-        write_positions(m_mesh);
-        write_edge_list(m_mesh);
-        write_tri_list(m_mesh);
-        firstTime = false;
-    }
 
 
     // update inertia term
@@ -279,14 +330,27 @@ void Simulation::setupConstraints()
 {
     clearConstraints();
 
+    write_positions(m_mesh);
+    write_edge_list(m_mesh);
+    write_tri_list(m_mesh);
+
     switch(m_mesh->m_mesh_type)
     {
     case MESH_TYPE_CLOTH:
         // procedurally generate constraints including to attachment constraints
         {
+            // save contraints to file
+            std::ofstream file;
+            file.open("constraints.txt");
+
             // generating attachment constraints.
             AddAttachmentConstraint(0);
             AddAttachmentConstraint(m_mesh->m_dim[1]*(m_mesh->m_dim[0]-1));
+            for (unsigned int i = 0; i <2; ++i)
+            {
+                AttachmentConstraint* c = const_cast<AttachmentConstraint*>(dynamic_cast<AttachmentConstraint*>(m_constraints[i]));
+                file<<setprecision(10) << c << std::endl;
+            }
 
             // generate stretch constraints. assign a stretch constraint for each edge.
             EigenVector3 p1, p2;
@@ -296,8 +360,8 @@ void Simulation::setupConstraints()
                 p2 = m_mesh->m_current_positions.block_vector(e->m_v2);
                 SpringConstraint* c = new SpringConstraint(&m_stiffness_stretch, e->m_v1, e->m_v2, (p1-p2).norm());
                 m_constraints.push_back(c);
-                // f"AttachmentConstraint: {self.p0} fixed_point: {self.fixed_point} stiffness: {self.stiffness} type: {self.type}"
-                std::cout << "SpringConstraint: " << e->m_v1 << " - " << e->m_v2 << " rest_len: " << c->m_rest_length << " stiffness: " << c->m_stiffness << " type: " << "stretch" << std::endl;
+
+                file << c << std::endl;
             }
 
             // generate bending constraints. naive
@@ -314,8 +378,8 @@ void Simulation::setupConstraints()
                         p2 = m_mesh->m_current_positions.block_vector(index_row_1);
                         SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_row_1, (p1-p2).norm(), "bending");
                         m_constraints.push_back(c);
-                        // return f"SpringConstraint: {self.p1} - {self.p2} rest_len: {self.rest_len} stiffness: {self.stiffness} type: {self.type}"
-                        std::cout << "SpringConstraint: " << index_self << " - " << index_row_1 << " rest_len: " << c->m_rest_length << " stiffness: " << *(c->m_stiffness) << " type: " <<"bending" << std::endl;
+
+                        file<<setprecision(10)  << c << std::endl;
                     }
                     if (k+2 < m_mesh->m_dim[1])
                     {
@@ -323,13 +387,15 @@ void Simulation::setupConstraints()
                         p2 = m_mesh->m_current_positions.block_vector(index_column_1);
                         SpringConstraint* c = new SpringConstraint(&m_stiffness_bending, index_self, index_column_1, (p1-p2).norm(), "bending");
                         m_constraints.push_back(c);
-                        // return f"SpringConstraint: {self.p1} - {self.p2} rest_len: {self.rest_len} stiffness: {self.stiffness} type: {self.type}"
-                        std::cout << "SpringConstraint: " << index_self << " - " << index_column_1 << " rest_len: " << c->m_rest_length << " stiffness: " << *(c->m_stiffness) << " type: " << "bending" << std::endl;
+
+                        file<<setprecision(10)  << c << std::endl;
                     }
                 }
             }
+
+            cout<< "Constraints written to file"<<endl;
+            file.close();
         }
-        exit(0);
         break;
     case MESH_TYPE_TET:
         {
@@ -512,7 +578,7 @@ void Simulation::integrateOptimizationMethod()
     // while loop until converge or exceeds maximum iterations
     bool converge = false;
 
-    for (unsigned int iteration_num = 0; !converge && iteration_num < m_iterations_per_frame; ++iteration_num)
+    for (m_iteration_num = 0; !converge && m_iteration_num < m_iterations_per_frame; ++m_iteration_num)
     {
         switch (m_integration_method)
         {
@@ -560,13 +626,19 @@ bool Simulation::integrateGradientDescentOneIteration(VectorX& x)
         return false;
 }
 
+
+
 bool Simulation::integrateNewtonDescentOneIteration(VectorX& x)
 {
+    std::cout << "iter:"<<m_iteration_num << std::endl;
+
     // evaluate gradient direction
     VectorX gradient;
     evaluateGradient(x, gradient);
 
-    if (gradient.squaredNorm() < EPSILON)
+    float normsqr = gradient.squaredNorm();
+    std::cout << "gradient normsqr: " << normsqr << std::endl;
+    if (normsqr < EPSILON)
         return true;
 
     // evaluate hessian matrix
@@ -582,6 +654,7 @@ bool Simulation::integrateNewtonDescentOneIteration(VectorX& x)
 
     // update x
     x = x + descent_dir * step_size;
+
     // report convergence
     if (step_size < EPSILON)
         return true;
@@ -658,7 +731,6 @@ ScalarType Simulation::evaluateObjectiveFunction(const VectorX& x)
 
     // external force
     potential_term -= x.transpose()*m_external_force;
-
     ScalarType inertia_term = 0.5 * (x-m_inertia_y).transpose() * m_mesh->m_mass_matrix * (x-m_inertia_y);
     ScalarType h_square = m_h*m_h;
 
@@ -678,20 +750,10 @@ void Simulation::evaluateGradient(const VectorX& x, VectorX& gradient)
 
     // external forces
     gradient -= m_external_force;
-
     ScalarType h_square = m_h*m_h;
     gradient = m_mesh->m_mass_matrix * (x - m_inertia_y) + h_square*gradient;
 }
 
-#include "eigen/unsupported/Eigen/SparseExtra"
-
-using SpMat = Eigen::SparseMatrix<float>;
-
-template<typename T = SpMat>
- void saveMatrix(T& d, std::string filename = "mat")
- {
-     Eigen::saveMarket(d, filename);
- }
 
 
 void Simulation::evaluateHessian(const VectorX& x, SparseMatrix& hessian_matrix)
@@ -707,7 +769,6 @@ void Simulation::evaluateHessian(const VectorX& x, SparseMatrix& hessian_matrix)
 
     hessian_matrix.setFromTriplets(h_triplets.begin(), h_triplets.end());
     
-    saveMatrix(hessian_matrix, "hessian.mtx");
     ScalarType h_square = m_h*m_h;
     hessian_matrix = m_mesh->m_mass_matrix + h_square*hessian_matrix;
 }
@@ -746,17 +807,14 @@ ScalarType Simulation::lineSearch(const VectorX& x, const VectorX& gradient_dir,
         ScalarType lhs, rhs;
 
         ScalarType currentObjectiveValue = evaluateObjectiveFunction(x);
-
         do
         {
             t *= m_ls_beta;
             x_plus_tdx = x + t*descent_dir;
-        
             lhs = evaluateObjectiveFunction(x_plus_tdx);
             rhs = currentObjectiveValue + m_ls_alpha * t * (gradient_dir.transpose() * descent_dir)(0);
-
         } while (lhs >= rhs && t > EPSILON);
-
+        m_total_energy = lhs;
         if (t < EPSILON)
         {
             t = 0.0;
@@ -906,3 +964,4 @@ void Simulation::generateRandomVector(const unsigned int size, VectorX& x)
 }
 
 #pragma endregion
+

@@ -6,3 +6,5 @@ build
 .vscode
 main.exe
 main.pdb
+fast_mass_spring/*.txt
+fast_mass_spring/*.mtx

@@ -39,6 +39,7 @@
 #include "opengl_headers.h"
 #include "primitive.h"
 
+    
 class Constraint
 {
 public:
@@ -97,6 +98,7 @@ public:
     inline EigenVector3 GetFixedPoint() {return m_fixd_point;}
     inline void SetFixedPoint(const EigenVector3& target) {m_fixd_point = target;}
     inline unsigned int GetConstrainedVertexIndex() {return m_p0;}
+    friend std::ostream& operator<<(std::ostream& os, const AttachmentConstraint* c);
 
 private: 
     bool m_selected;
@@ -122,11 +124,13 @@ public:
     virtual void EvaluateDVector(unsigned int index, const VectorX& x, VectorX& d);
     virtual void EvaluateJMatrix(unsigned int index, std::vector<SparseMatrixTriplet>& J_triplets);
 
+    friend std::ostream& operator<<(std::ostream& os, const SpringConstraint* c);
     ScalarType m_rest_length;
     std::string m_type="stretch";
-protected:
     unsigned int m_p1, m_p2;
-    // rest length
+protected:
 };
+
+
 
 #endif

@@ -29,6 +29,8 @@
 
 #include "constraint.h"
 
+
+
 //----------Constraint Class----------//
 Constraint::Constraint(ScalarType *stiffness) : 
     m_stiffness(stiffness)
@@ -267,4 +269,27 @@ void SpringConstraint::EvaluateJMatrix(unsigned int index, std::vector<SparseMat
     J_triplets.push_back(SparseMatrixTriplet(3*m_p2+0, 3*index+0, -ks));
     J_triplets.push_back(SparseMatrixTriplet(3*m_p2+1, 3*index+1, -ks));
     J_triplets.push_back(SparseMatrixTriplet(3*m_p2+2, 3*index+2, -ks));
+}
+
+
+
+std::ostream& operator<<(std::ostream& os, const AttachmentConstraint* c)
+{
+    os << "AttachmentConstraint: vertex " << (*c).m_p0 
+       << " fixed_point: (" << (*c).m_fixd_point.x() << ", " 
+       << (*c).m_fixd_point.y() << ", " << (*c).m_fixd_point.z() << ")"
+       << " stiffness: " << *((*c).m_stiffness);
+    return os;
+}
+
+
+
+std::ostream& operator<<(std::ostream& os, const SpringConstraint* c)
+{
+    
+    os << "SpringConstraint: " << (*c).m_p1 << " - " << (*c).m_p2 
+       << " rest_len: " << (*c).m_rest_length 
+       << " stiffness: " << *((*c).m_stiffness) 
+       << " type: " << (*c).m_type;
+    return os;
 }

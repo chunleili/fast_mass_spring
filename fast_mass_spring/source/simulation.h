@@ -127,12 +127,14 @@ protected:
 
     // for optimization method, number of iterations
     unsigned int m_iterations_per_frame;
+    unsigned int m_iteration_num;
 
     // line search for gradient descent and newton's method
     bool m_enable_line_search;
     ScalarType m_ls_alpha;
     ScalarType m_ls_beta;
     ScalarType m_ls_step_size;
+    ScalarType m_total_energy;
 
     // for prefactorization
     SparseMatrix m_weighted_laplacian;

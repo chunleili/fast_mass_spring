@@ -5,11 +5,10 @@
             "name": "(msvc) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            // Resolved by CMake Tools:
+            "preLaunchTask": "CMake: 生成",
             "program": "${workspaceFolder}/fast_mass_spring/main.exe",
             "args": [],
             "stopAtEntry": false,
-            "justMyCode": true,
             "cwd": "${workspaceFolder}/fast_mass_spring",
             "environment": [
                 {
